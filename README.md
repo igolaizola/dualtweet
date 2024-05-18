@@ -3,6 +3,8 @@
 Dual tweet is a simple web that allows you to tweet a message and its translation in a different language at the same time.
 It uses OpenAI to translate the message and Typefully to create the tweet drafts.
 
+You can try it at [dualtweet.com](https://dualtweet.com)
+
 Typefully API doesn't allow CORS requests, so the app uses a Netlify redirect to avoid the CORS issue.
 
 ## 💖 Support
