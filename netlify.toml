@@ -1,0 +1,6 @@
+[[redirects]]
+  from = "/typefully/*"
+  to = "https://api.typefully.com/:splat"
+  status = 200
+  force = true
+  headers = {Origin="https://typefully.com", Access-Control-Allow-Origin="*", Access-Control-Allow-Headers="Content-Type, Authorization", Access-Control-Allow-Methods="GET, POST, PUT, DELETE"}

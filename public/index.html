@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual Tweet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <style>
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 flex flex-col min-h-screen">
+    <div x-data="app()" x-init="init()" class="flex-grow container mx-auto p-6">
+        <!-- Header -->
+        <header class="mb-6 text-center">
+            <h1 class="text-4xl font-bold">Dual Tweet</h1>
+            <p class="text-gray-600">Translate and post your tweets using OpenAI and Typefully.</p>
+        </header>
+
+        <!-- Settings Section -->
+        <div x-show="showSettings" class="bg-white p-6 rounded-lg shadow-lg mb-6">
+            <h2 class="text-2xl font-bold mb-4">Settings</h2>
+            <form @submit.prevent="saveSettings">
+                <div class="mb-4">
+                    <label for="typefully-key-1" class="block text-gray-700">Typefully Key 1</label>
+                    <input id="typefully-key-1" type="password" x-model="settings.typefullyKey1"
+                        class="w-full p-2 border border-gray-300 rounded">
+                </div>
+                <div class="mb-4">
+                    <label for="typefully-key-2" class="block text-gray-700">Typefully Key 2</label>
+                    <input id="typefully-key-2" type="password" x-model="settings.typefullyKey2"
+                        class="w-full p-2 border border-gray-300 rounded">
+                </div>
+                <div class="mb-4">
+                    <label for="openai-key" class="block text-gray-700">OpenAI Key</label>
+                    <input id="openai-key" type="password" x-model="settings.openaiKey"
+                        class="w-full p-2 border border-gray-300 rounded">
+                </div>
+                <div class="mb-4">
+                    <label for="openai-model" class="block text-gray-700">OpenAI Model</label>
+                    <input id="openai-model" type="text" x-model="settings.openaiModel"
+                        class="w-full p-2 border border-gray-300 rounded">
+                </div>
+                <div class="mb-4">
+                    <label for="prompt-template" class="block text-gray-700">Prompt Template</label>
+                    <input id="prompt-template" type="text" x-model="settings.promptTemplate"
+                        class="w-full p-2 border border-gray-300 rounded">
+                </div>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Save Settings</button>
+                <button type="button" @click="clearSettings" class="bg-red-500 text-white px-4 py-2 rounded ml-2">Clear
+                    Settings</button>
+            </form>
+        </div>
+
+        <button x-show="!showSettings" @click="showSettings = true"
+            class="bg-gray-500 text-white px-4 py-2 rounded mb-6">Show Settings</button>
+
+        <!-- Main Form for Writing the Post -->
+        <div x-show="step === 1" class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-bold mb-4">Create a Twitter Post</h2>
+            <form @submit.prevent="translatePost">
+                <div class="mb-4">
+                    <label for="post" class="block text-gray-700">Your Post</label>
+                    <textarea id="post" x-model="post" class="w-full p-2 border border-gray-300 rounded"></textarea>
+                </div>
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Translate</button>
+            </form>
+        </div>
+
+        <!-- Form for Editing the Original and Translated Post -->
+        <div x-show="step === 2" class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-bold mb-4">Edit and Post</h2>
+            <form @submit.prevent="submitPost">
+                <div class="mb-4">
+                    <label for="originalPost" class="block text-gray-700">Original Post</label>
+                    <textarea id="originalPost" x-model="originalPost"
+                        class="w-full p-2 border border-gray-300 rounded"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="translatedPost" class="block text-gray-700">Translated Post</label>
+                    <textarea id="translatedPost" x-model="translatedPost"
+                        class="w-full p-2 border border-gray-300 rounded"></textarea>
+                </div>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Post</button>
+                <button type="button" @click="step = 1"
+                    class="bg-gray-500 text-white px-4 py-2 rounded ml-2">Back</button>
+            </form>
+        </div>
+
+        <!-- Pop-up for messages -->
+        <div x-show="showPopup" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50"
+            x-transition>
+            <div class="bg-white p-6 rounded-lg shadow-lg modal" x-transition>
+                <h2 class="text-2xl font-bold mb-4">Message</h2>
+                <p class="mb-4" x-text="popupMessage"></p>
+                <button @click="showPopup = false" class="bg-blue-500 text-white px-4 py-2 rounded">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-6 text-center">
+        <p>Dual Tweet has been developed by @igolaizola, the code is available on GitHub.</p>
+        <p>We don't save any API keys on our server. They are only saved on your browser local storage.</p>
+        <div class="mt-4">
+            <a href="https://github.com/igolaizola/dualtweet" target="_blank" class="mx-2 text-gray-400">GitHub</a>
+            <a href="https://x.com/igolaizola" target="_blank" class="mx-2 text-blue-400">Twitter</a>
+            <a href="https://t.me/igolaizola" target="_blank" class="mx-2 text-blue-600">Telegram</a>
+        </div>
+    </footer>
+
+    <script>
+        function app() {
+            return {
+                settings: {
+                    typefullyKey1: '',
+                    typefullyKey2: '',
+                    openaiKey: '',
+                    openaiModel: 'gpt-3.5-turbo',
+                    promptTemplate: 'Translate the following tweet to English, return only the translation: "{{post}}"'
+                },
+                post: '',
+                originalPost: '',
+                translatedPost: '',
+                showSettings: true,
+                showPopup: false,
+                popupMessage: '',
+                step: 1,
+                init() {
+                    // Load settings from localStorage
+                    this.settings.typefullyKey1 = localStorage.getItem('typefullyKey1') || '';
+                    this.settings.typefullyKey2 = localStorage.getItem('typefullyKey2') || '';
+                    this.settings.openaiKey = localStorage.getItem('openaiKey') || '';
+                    this.settings.openaiModel = localStorage.getItem('openaiModel') || this.settings.openaiModel;
+                    this.settings.promptTemplate = localStorage.getItem('promptTemplate') || this.settings.promptTemplate;
+
+                    // Show settings if any key is missing
+                    if (!this.settings.typefullyKey1 || !this.settings.typefullyKey2 || !this.settings.openaiKey) {
+                        this.showSettings = true;
+                    } else {
+                        this.showSettings = false;
+                    }
+                },
+                saveSettings() {
+                    // Save settings to localStorage
+                    localStorage.setItem('typefullyKey1', this.settings.typefullyKey1);
+                    localStorage.setItem('typefullyKey2', this.settings.typefullyKey2);
+                    localStorage.setItem('openaiKey', this.settings.openaiKey);
+                    localStorage.setItem('openaiModel', this.settings.openaiModel);
+                    localStorage.setItem('promptTemplate', this.settings.promptTemplate);
+                    this.showPopupMessage('Settings saved!');
+                    this.showSettings = false;
+                },
+                clearSettings() {
+                    // Clear settings from localStorage and reset to defaults
+                    localStorage.removeItem('typefullyKey1');
+                    localStorage.removeItem('typefullyKey2');
+                    localStorage.removeItem('openaiKey');
+                    localStorage.removeItem('openaiModel');
+                    localStorage.removeItem('promptTemplate');
+                    this.settings.typefullyKey1 = '';
+                    this.settings.typefullyKey2 = '';
+                    this.settings.openaiKey = '';
+                    this.settings.openaiModel = 'gpt-3.5-turbo';
+                    this.settings.promptTemplate = 'Translate the following tweet to English, return only the translation: "{{post}}"';
+                    this.showPopupMessage('Settings cleared and reset to defaults!');
+                    this.showSettings = true;
+                },
+                async translatePost() {
+                    if (!this.settings.openaiKey || !this.settings.openaiModel || !this.post) {
+                        this.showPopupMessage('Please fill in all settings and the post content.');
+                        return;
+                    }
+
+                    try {
+                        const translatedPost = await this.translatePostAI(this.post);
+                        this.originalPost = this.post;
+                        this.translatedPost = translatedPost;
+                        this.step = 2;
+                    } catch (error) {
+                        this.showPopupMessage('Translation failed. Please check your OpenAI key and settings.');
+                    }
+                },
+                async submitPost() {
+                    try {
+                        await this.postToTypefully(this.settings.typefullyKey1, this.originalPost);
+                        await this.postToTypefully(this.settings.typefullyKey2, this.translatedPost);
+                        this.showPopupMessage('Post submitted successfully!');
+                        this.post = '';
+                        this.originalPost = '';
+                        this.translatedPost = '';
+                        this.step = 1;
+                    } catch (error) {
+                        this.showPopupMessage('Failed to submit the post. Please check your Typefully keys and try again.');
+                    }
+                },
+                async translatePostAI(post) {
+                    const prompt = this.settings.promptTemplate.replace('{{post}}', post);
+                    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.settings.openaiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: this.settings.openaiModel,
+                            messages: [
+                                { role: 'system', content: 'You are a translator tool.' },
+                                { role: 'user', content: prompt }
+                            ],
+                            max_tokens: 1024
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+                        return data.choices[0].message.content;
+                    } else {
+                        throw new Error('Translation failed');
+                    }
+                },
+                async postToTypefully(key, post) {
+                    // /.netlify/functions/typefully-proxy
+                    const response = await fetch('/typefully/v1/drafts/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-KEY': `Bearer ${key}`
+                        },
+                        body: JSON.stringify({ content: post })
+                    });
+                    if (!response.ok) {
+                        throw new Error('Posting to Typefully failed');
+                    }
+                },
+                showPopupMessage(message) {
+                    this.popupMessage = message;
+                    this.showPopup = true;
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
