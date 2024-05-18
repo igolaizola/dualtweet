@@ -16,7 +16,7 @@
 </head>
 
 <body class="bg-gray-100 flex flex-col min-h-screen">
-    <div x-data="app()" x-init="init()" class="flex-grow container mx-auto p-6">
+    <div x-data="app()" x-init="init()" class="flex-grow container max-w-4xl mx-auto p-6">
         <!-- Header -->
         <header class="mb-6 text-center">
             <h1 class="text-4xl font-bold">Dual Tweet</h1>
@@ -67,7 +67,8 @@
             <form @submit.prevent="translatePost">
                 <div class="mb-4">
                     <label for="post" class="block text-gray-700">Your Post</label>
-                    <textarea id="post" x-model="post" class="w-full p-2 border border-gray-300 rounded"></textarea>
+                    <textarea id="post" x-model="post" class="w-full p-2 border border-gray-300 rounded"
+                        rows="4"></textarea>
                 </div>
                 <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Translate</button>
             </form>
@@ -79,13 +80,13 @@
             <form @submit.prevent="submitPost">
                 <div class="mb-4">
                     <label for="originalPost" class="block text-gray-700">Original Post</label>
-                    <textarea id="originalPost" x-model="originalPost"
-                        class="w-full p-2 border border-gray-300 rounded"></textarea>
+                    <textarea id="originalPost" x-model="originalPost" class="w-full p-2 border border-gray-300 rounded"
+                        rows="4"></textarea>
                 </div>
                 <div class="mb-4">
                     <label for="translatedPost" class="block text-gray-700">Translated Post</label>
                     <textarea id="translatedPost" x-model="translatedPost"
-                        class="w-full p-2 border border-gray-300 rounded"></textarea>
+                        class="w-full p-2 border border-gray-300 rounded" rows="4"></textarea>
                 </div>
                 <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Post</button>
                 <button type="button" @click="step = 1"
@@ -106,13 +107,15 @@
 
     <!-- Footer -->
     <footer class="bg-gray-800 text-white py-6 text-center">
-        <p>Dual Tweet has been developed by @igolaizola, the code is available on GitHub.</p>
-        <p>We don't save any API keys on our server. They are only saved on your browser local storage.</p>
-        <div class="mt-4">
-            <a href="https://github.com/igolaizola/dualtweet" target="_blank" class="mx-2 text-gray-400">GitHub</a>
-            <a href="https://x.com/igolaizola" target="_blank" class="mx-2 text-blue-400">Twitter</a>
-            <a href="https://t.me/igolaizola" target="_blank" class="mx-2 text-blue-600">Telegram</a>
-        </div>
+        <p class="text-sm">
+            Dual Tweet has been developed by <a href="https://x.com/igolaizola" target="_blank"
+                class=" text-blue-400 hover:text-blue-500">@igolaizola</a>. The code is available on <a
+                href="https://github.com/igolaizola/dualtweet" target="_blank" class=" text-blue-400
+                hover:text-blue-500">GitHub</a>.
+        </p>
+        <p class="text-sm mt-2">
+            We don't save any API keys on our server; they are only saved in your browser's local storage.
+        </p>
     </footer>
 
     <script>
@@ -225,7 +228,6 @@
                     }
                 },
                 async postToTypefully(key, post) {
-                    // /.netlify/functions/typefully-proxy
                     const response = await fetch('/typefully/v1/drafts/', {
                         method: 'POST',
                         headers: {
