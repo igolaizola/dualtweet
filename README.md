@@ -7,6 +7,8 @@ You can try it at [dualtweet.com](https://dualtweet.com)
 
 Typefully API doesn't allow CORS requests, so the app uses a Netlify redirect to avoid the CORS issue.
 
+> 📢 Connect with us! Join our Telegram group for support and collaboration: [t.me/igohub](https://t.me/igohub)
+
 ## 💖 Support
 
 If you have found my code helpful, please give the repository a star ⭐
